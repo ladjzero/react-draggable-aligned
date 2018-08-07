@@ -9,7 +9,12 @@ module.exports = {
       { test: /\.css$/, use: ['style-loader', 'css-loader'] },
     ]
   },
+  externals: {
+    'react': 'React',
+    'react-dom': 'ReactDOM',
+    'prop-types': 'PropTypes',
+  },
   plugins: [
-    new HtmlWebpackPlugin(),
+    new HtmlWebpackPlugin({ template: './index.html' }),
   ],
 };
