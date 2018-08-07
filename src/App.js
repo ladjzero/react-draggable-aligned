@@ -1,6 +1,15 @@
 import React, { Component } from 'react';
-import AlignedDraggable from './AlignedDraggable';
-import MarkingProvider from './MarkingProvider';
+import { AlignedDraggable, AlignedMarkingProvider } from 'react-draggable-aligned';
+
+const nodes = [{
+  height: 100,
+  width: 100,
+  color: 'red',
+}, {
+  height: 120,
+  width: 120,
+  color: 'blue',
+}];
 
 class App extends Component {
   state = {
@@ -11,39 +20,69 @@ class App extends Component {
     draggingIndex: NaN,
   }
 
+  getMarkings() {
+    const xs = new Set();
+    const ys = new Set();
+    const { positions, draggingIndex } = this.state;
+
+    xs.add(200);
+
+    switch (draggingIndex) {
+      case 0:
+        [positions[1].x, positions[1].x + nodes[1].width / 2, positions[1].x + nodes[1].width].forEach(Set.prototype.add.bind(xs));
+        [positions[1].y, positions[1].y + nodes[1].height / 2,, positions[1].y + nodes[1].height].forEach(Set.prototype.add.bind(ys));
+        break;
+      case 1:
+        [positions[0].x, positions[0].x + nodes[0].width / 2, positions[0].x + nodes[0].width].forEach(Set.prototype.add.bind(xs));
+        [positions[0].y, positions[0].y + nodes[0].height / 2, positions[0].y + nodes[0].height].forEach(Set.prototype.add.bind(ys));
+        break;
+      default:
+        break;
+    }
+
+    return { xs: Array.from(xs), ys: Array.from(ys) };
+  }
+
+  updatePosition(index, { x, y }) {
+    const { positions } = this.state;
+
+    this.setState({
+      positions: positions.map((p, i) => i == index ? { x, y } : p),
+      draggingIndex: NaN,
+    });
+  }
+
   render() {
     const { positions, draggingIndex } = this.state;
 
     return (
-      <MarkingProvider
-        markings={() => positions.filter((_, i) => i != draggingIndex).map(({x ,y })=> ({ x: x+ 50, y: y+50}))}
-        // markings={[{ x: 100, y: 100 }]}
+      <AlignedMarkingProvider
+        markings={this.getMarkings()}
       >
-      <AlignedDraggable position={positions[0]}
-        onStart={() => this.setState({ draggingIndex: 0 })}
-        onStop={(e, { x, y }) => this.setState({ positions: [{ x, y }, positions[1]], draggingIndex: NaN})}
-      >
-        <div className="App" style={{
-          height: 100,
-          width: 100,
-          backgroundColor: 'red',
-          position: 'absolute'
-        }}>
+        <div>
+          {
+            nodes.map((n, index) => (
+              <AlignedDraggable
+                key={index}
+                position={positions[index]}
+                onStart={() => this.setState({ draggingIndex: index })}
+                onStop={(e, { x, y }) => this.updatePosition(index, { x, y })}
+                width={n.width}
+                height={n.height}
+                bounds={{ left: 0, top: 0, right: 400 - n.width }}        
+              >
+                <div className="App" style={{
+                  height: n.height,
+                  width: n.width,
+                  backgroundColor: n.color,
+                  position: 'absolute'
+                }}>
+                </div>
+              </AlignedDraggable>
+            ))
+          }
         </div>
-      </AlignedDraggable>
-      <AlignedDraggable position={positions[1]}
-        onStart={() => this.setState({ draggingIndex: 1 })}
-        onStop={(e, { x, y }) => this.setState({ positions: [positions[0], { x, y }], draggingIndex: NaN })}      
-      >
-        <div className="App" style={{
-          height: 100,
-          width: 100,
-          backgroundColor: 'green',
-          position: 'absolute'
-        }}>
-        </div>
-      </AlignedDraggable>
-      </MarkingProvider>
+      </AlignedMarkingProvider>
     );
   }
 }
